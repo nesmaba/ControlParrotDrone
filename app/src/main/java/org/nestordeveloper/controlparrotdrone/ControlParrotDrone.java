@@ -57,37 +57,41 @@ public class ControlParrotDrone extends AppCompatActivity implements ARDiscovery
         startDiscovery();
         registerReceivers();
 
-        ARDiscoveryDeviceService service = deviceList.get(0); //Comprobar si el elemento 0 tiene algo
+        if(deviceList!=null){
+            ARDiscoveryDeviceService service = deviceList.get(0); //Comprobar si el elemento 0 tiene algo
 
-        if(service!=null)
-            device = createDiscoveryDevice(service); // mirar que device tiene algo
+            if(service!=null) {
+                device = createDiscoveryDevice(service); // mirar que device tiene algo
+                if (device != null) {
+                    try {
+                        deviceController = new ARDeviceController(device);
+                    } catch (ARControllerException e) {
+                        e.printStackTrace();
+                    }
 
-        try{
-            deviceController = new ARDeviceController(device);
-        }catch (ARControllerException e){
-            e.printStackTrace();
+                    // your class should implement ARDeviceControllerListener
+                    // Listen to the commands received from the drone (example of the battery level received)
+                    // Listen to the states changes:
+                    deviceController.addListener(this);
+
+                    // Listen to the video stream received from the drone
+                    // your class should implement ARDeviceControllerStreamListener
+                    deviceController.addStreamListener(this);
+
+            /*
+                Finally, starts the device controller (after that call, the callback you set in
+                ARCONTROLLER_Device_AddStateChangedCallback should be called).
+            */
+                    ARCONTROLLER_ERROR_ENUM error = deviceController.start();
+
+                    // Cleanup when done:
+                    // ARCONTROLLER_ERROR_ENUM error = deviceController.stop();
+
+                    // VOY POR TAKE OFF. LANDING... http://developer.parrot.com/docs/SDK3/?java#taking-off
+
+                }
+            }
         }
-
-        // your class should implement ARDeviceControllerListener
-        // Listen to the commands received from the drone (example of the battery level received)
-        // Listen to the states changes:
-        deviceController.addListener (this);
-
-        // Listen to the video stream received from the drone
-        // your class should implement ARDeviceControllerStreamListener
-        deviceController.addStreamListener(this);
-
-        /*
-            Finally, starts the device controller (after that call, the callback you set in
-            ARCONTROLLER_Device_AddStateChangedCallback should be called).
-        */
-        ARCONTROLLER_ERROR_ENUM error = deviceController.start();
-
-        // Cleanup when done:
-        // ARCONTROLLER_ERROR_ENUM error = deviceController.stop();
-
-        // VOY POR TAKE OFF. LANDING... http://developer.parrot.com/docs/SDK3/?java#taking-off
-
 
     }
 
@@ -154,6 +158,8 @@ public class ControlParrotDrone extends AppCompatActivity implements ARDiscovery
             deviceList = mArdiscoveryService.getDeviceServicesArray();
 
             // Do what you want with the device list
+            for(ARDiscoveryDeviceService aux:deviceList)
+                Log.i("DEVICES",aux.toString());
         }
     }
 
